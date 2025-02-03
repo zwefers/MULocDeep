@@ -14,3 +14,4 @@ dependencies:
   - scikit-learn
   - scipy=1.1.0
   - biopython
+  - pandas

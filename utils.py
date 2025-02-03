@@ -93,32 +93,8 @@ def convertSampleToBlosum62(seq):
     return probMatr
 
 
-def convertlabels_to_categorical(seq):
-    label = np.array([[0., 0., 0., 0., 0., 0., 0., 0.],
-                      [0., 0., 0., 0., 0., 0., 0., 0.],
-                      [0., 0., 0., 0., 0., 0., 0., 0.],
-                      [0., 0., 0., 0., 0., 0., 0., 0.],
-                      [0., 0., 0., 0., 0., 0., 0., 0.],
-                      [0., 0., 0., 0., 0., 0., 0., 0.],
-                      [0., 0., 0., 0., 0., 0., 0., 0.],
-                      [0., 0., 0., 0., 0., 0., 0., 0.],
-                      [0., 0., 0., 0., 0., 0., 0., 0.],
-                      [0., 0., 0., 0., 0., 0., 0., 0.]])
-    for index in seq.split(";"):
-        i = int(index.split(".")[0])
-        j = int(index.split(".")[1])
-        label[i][j] = 1.0
-    return label
-
-def convertlabels_to_categorical_seq2loc(seq):
-    label = np.array([[0., 0., 0., 0., 0., 0.],
-                      [0., 0., 0., 0., 0., 0.],
-                      [0., 0., 0., 0., 0., 0.],
-                      [0., 0., 0., 0., 0., 0.],
-                      [0., 0., 0., 0., 0., 0.],
-                      [0., 0., 0., 0., 0., 0.],
-                      [0., 0., 0., 0., 0., 0.],
-                      [0., 0., 0., 0., 0., 0.]])
+def convertlabels_to_categorical(seq, coarse=10, fine=8):
+    label = np.zeros((coarse,fine))
     for index in seq.split(";"):
         i = int(index.split(".")[0])
         j = int(index.split(".")[1])
