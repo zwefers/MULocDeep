@@ -217,7 +217,7 @@ def mask_func(x):
     return x[0] * x[1]
 
 
-def singlemodel(train_x):
+def singlemodel(train_x, coarse=10, fine=8):
     [dim_lstm, da, r, W_regularizer, Att_regularizer_weight, drop_per, drop_hid, lr] = [
         180, 369, 41, 0.00001,0.0007159, 0.1, 0.1, 0.0005]
     input = Input(shape=(train_x.shape[1:]), name="Input")  # input's shape=[?,seq_len,encoding_dim]
@@ -253,12 +253,12 @@ def singlemodel(train_x):
     att_drop = layers.Dropout(drop_hid)(attbn)
     flat = layers.Flatten()(att_drop)
     flat_drop = layers.Dropout(drop_hid)(flat)
-    lev2_output = layers.Dense(units=10 * 8, kernel_initializer='orthogonal', activation=None)(flat_drop) #change to 7*6 - zoe
-    lev2_output_reshape = layers.Reshape([10, 8, 1])(lev2_output) #change to [7,6,1] - zoe
+    lev2_output = layers.Dense(units=coarse * fine, kernel_initializer='orthogonal', activation=None)(flat_drop) #change to 7*6 - zoe
+    lev2_output_reshape = layers.Reshape([coarse, fine, 1])(lev2_output) #change to [7,6,1] - zoe
     lev2_output_bn = layers.BatchNormalization()(lev2_output_reshape)
     lev2_output_pre = layers.Activation('sigmoid')(lev2_output_bn)
-    lev2_output_act = layers.Reshape([10,8],name='lev2')(lev2_output_pre) #change to [7,6] - zoe
-    final = layers.MaxPooling2D(pool_size=[1, 8], strides=None, padding='same', data_format='channels_last')(lev2_output_pre) #change to [1,6] - zoe
+    lev2_output_act = layers.Reshape([coarse,fine],name='lev2')(lev2_output_pre) #change to [7,6] - zoe
+    final = layers.MaxPooling2D(pool_size=[1, fine], strides=None, padding='same', data_format='channels_last')(lev2_output_pre) #change to [1,6] - zoe
     final = layers.Reshape([-1,],name='1ev1')(final)
     model_small = Model(inputs=[input, input_mask], outputs=[lev2_output_act, final])
     model_big = Model(inputs=[input, input_mask], outputs=[final])
@@ -269,7 +269,7 @@ def singlemodel(train_x):
     model_small.summary() #outputs both finegrained and coarsgranied categories
     return model_big, model_small
 
-def singlemodel_cpu(train_x):
+def singlemodel_cpu(train_x, coarse=10, fine=8):
     [dim_lstm, da, r, W_regularizer, Att_regularizer_weight, drop_per, drop_hid, lr] = [
         180, 369, 41, 0.00001,0.0007159, 0.1, 0.1, 0.0005]
     input = Input(shape=(train_x.shape[1:]), name="Input")  # input's shape=[?,seq_len,encoding_dim]
@@ -305,12 +305,12 @@ def singlemodel_cpu(train_x):
     att_drop = layers.Dropout(drop_hid)(attbn)
     flat = layers.Flatten()(att_drop)
     flat_drop = layers.Dropout(drop_hid)(flat)
-    lev2_output = layers.Dense(units=10 * 8, kernel_initializer='orthogonal', activation=None)(flat_drop)
-    lev2_output_reshape = layers.Reshape([10, 8, 1])(lev2_output)
+    lev2_output = layers.Dense(units=coarse * fine, kernel_initializer='orthogonal', activation=None)(flat_drop)
+    lev2_output_reshape = layers.Reshape([coarse, fine, 1])(lev2_output)
     lev2_output_bn = layers.BatchNormalization()(lev2_output_reshape)
     lev2_output_pre = layers.Activation('sigmoid')(lev2_output_bn)
-    lev2_output_act = layers.Reshape([10,8],name='lev2')(lev2_output_pre)
-    final = layers.MaxPooling2D(pool_size=[1, 8], strides=None, padding='same', data_format='channels_last')(
+    lev2_output_act = layers.Reshape([coarse,fine],name='lev2')(lev2_output_pre)
+    final = layers.MaxPooling2D(pool_size=[1, fine], strides=None, padding='same', data_format='channels_last')(
         lev2_output_pre)
     final = layers.Reshape([-1,],name='1ev1')(final)
     model_small = Model(inputs=[input, input_mask], outputs=[lev2_output_act, final])
