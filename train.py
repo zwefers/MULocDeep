@@ -34,7 +34,7 @@ def process_eachseq(seq,pssmfile,mask_seq,new_pssms):
         mask_seq.append(gen_mask_mat(1000, 0))
     
 
-def endpad(seqfile, labelfile, pssmdir="", npzfile = ""):
+def endpad(seqfile, labelfile, pssmdir="", npzfile = "", coarse=10, fine=8):
     if not os.path.exists(npzfile):
         new_pssms = []
         labels = []
@@ -61,7 +61,7 @@ def endpad(seqfile, labelfile, pssmdir="", npzfile = ""):
             index+=1
         process_eachseq(seq,pssmfile,mask_seq,new_pssms)
         x = np.array(new_pssms)
-        y = [convertlabels_to_categorical(i) for i in labels] #replace with convertlabels_to_categorical_seq2loc - zoe
+        y = [convertlabels_to_categorical(i, coarse, fine) for i in labels] #replace with convertlabels_to_categorical_seq2loc - zoe
         y = np.array(y)
         mask = np.array(mask_seq)
         np.savez(npzfile, x=x, y=y, mask=mask, ids=ids)
@@ -82,25 +82,33 @@ def train_MULocDeep(lv1_dir,lv2_dir,pssm_dir,output_dir,foldnum,coarse=10,fine=1
         lv2_dir+"lv2_train_fold" + str(foldnum) + "_seq",
         lv2_dir+"lv2_train_fold" + str(foldnum) + "_lab",
         pssm_dir,
-        "./data/npzfiles/lv2_train_fold"+str(foldnum)+"_seq.npz")
+        "./data/npzfiles/lv2_train_fold"+str(foldnum)+"_seq.npz",
+        coarse, 
+        fine)
     [val_x, val_y, val_mask,val_ids] = endpad(
         lv2_dir+"lv2_val_fold" + str(foldnum) + "_seq",
         lv2_dir+"lv2_val_fold" + str(foldnum) + "_lab",
         pssm_dir,
-        "./data/npzfiles/lv2_val_fold"+str(foldnum)+"_seq.npz")
+        "./data/npzfiles/lv2_val_fold"+str(foldnum)+"_seq.npz",
+        coarse, 
+        fine)
 
     # get big data = #lv1 annotation = more coarsegrained = vector output (10,1)
     [train_x_big, train_y_big, train_mask_big, train_ids_big] = endpad(
         lv1_dir + "lv1_train_fold" + str(foldnum) + "_seq",
         lv1_dir + "lv1_train_fold" + str(foldnum) + "_lab",
         pssm_dir,
-        "./data/npzfiles/lv1_train_fold" + str(foldnum) + "_seq.npz")
+        "./data/npzfiles/lv1_train_fold" + str(foldnum) + "_seq.npz",
+        coarse, 
+        fine)
 
     [val_x_big, val_y_big, val_mask_big, val_ids_big] = endpad(
         lv1_dir + "lv1_val_fold" + str(foldnum) + "_seq",
         lv1_dir + "lv1_val_fold" + str(foldnum) + "_lab",
         pssm_dir,
-        "./data/npzfiles/lv1_val_fold" + str(foldnum) + "_seq.npz")
+        "./data/npzfiles/lv1_val_fold" + str(foldnum) + "_seq.npz",
+        coarse, 
+        fine)
 
     batch_size = 128
     print("doing " + str(foldnum) + "th fold")
@@ -198,7 +206,7 @@ def main():
                         help='number of cross validation folds', required=False, default=8)
     parser.add_argument('--coarse', type=int,
                         help='number of cross validation folds', required=False, default=10)
-    parser.add_argument('-=fine', type=int,
+    parser.add_argument('--=fine', type=int,
                         help='number of cross validation folds', required=False, default=8)
     parser.set_defaults(feature=True)
     args = parser.parse_args()
