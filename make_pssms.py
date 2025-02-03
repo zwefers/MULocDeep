@@ -19,12 +19,13 @@ def process_input_user(df,dir):
     for i, row in df.iterrows():
         uniprot_id = row.uniprot_id
         sequence = row.Sequence
-
+        print(f"Processing protien {uniprot_id}")
         pssmfile=dir+uniprot_id+"_pssm.txt"
-        inputfile=dir+uniprot_id+'_tem.fasta'
+        inputfile=dir+uniprot_id+"_tem.fasta"
 
         if not os.path.exists(pssmfile):
             if os.path.exists(inputfile):
+                print(inputfile)
                 os.remove(inputfile)
             write_fasta(inputfile, [uniprot_id], [sequence])
             psiblast_cline = NcbipsiblastCommandline(query=inputfile, db='./db/swissprot/swissprot', num_iterations=3,
@@ -58,6 +59,6 @@ if __name__ == "__main__":
     #device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     joblib.Parallel(n_jobs=n_cores)(
-                joblib.delayed(process_input_user)(df, directory)
+                joblib.delayed(process_input_user)(split_df, directory)
                 for split_df in split_dfs
             )
