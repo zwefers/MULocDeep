@@ -110,6 +110,21 @@ def convertlabels_to_categorical(seq):
         label[i][j] = 1.0
     return label
 
+def convertlabels_to_categorical_seq2loc(seq):
+    label = np.array([[0., 0., 0., 0., 0., 0.],
+                      [0., 0., 0., 0., 0., 0.],
+                      [0., 0., 0., 0., 0., 0.],
+                      [0., 0., 0., 0., 0., 0.],
+                      [0., 0., 0., 0., 0., 0.],
+                      [0., 0., 0., 0., 0., 0.],
+                      [0., 0., 0., 0., 0., 0.],
+                      [0., 0., 0., 0., 0., 0.]])
+    for index in seq.split(";"):
+        i = int(index.split(".")[0])
+        j = int(index.split(".")[1])
+        label[i][j] = 1.0
+    return label
+
 
 def readPSSM(pssmfile):
     pssm = []
@@ -238,21 +253,20 @@ def singlemodel(train_x):
     att_drop = layers.Dropout(drop_hid)(attbn)
     flat = layers.Flatten()(att_drop)
     flat_drop = layers.Dropout(drop_hid)(flat)
-    lev2_output = layers.Dense(units=10 * 8, kernel_initializer='orthogonal', activation=None)(flat_drop)
-    lev2_output_reshape = layers.Reshape([10, 8, 1])(lev2_output)
+    lev2_output = layers.Dense(units=10 * 8, kernel_initializer='orthogonal', activation=None)(flat_drop) #change to 7*6 - zoe
+    lev2_output_reshape = layers.Reshape([10, 8, 1])(lev2_output) #change to [7,6,1] - zoe
     lev2_output_bn = layers.BatchNormalization()(lev2_output_reshape)
     lev2_output_pre = layers.Activation('sigmoid')(lev2_output_bn)
-    lev2_output_act = layers.Reshape([10,8],name='lev2')(lev2_output_pre)
-    final = layers.MaxPooling2D(pool_size=[1, 8], strides=None, padding='same', data_format='channels_last')(
-        lev2_output_pre)
+    lev2_output_act = layers.Reshape([10,8],name='lev2')(lev2_output_pre) #change to [7,6] - zoe
+    final = layers.MaxPooling2D(pool_size=[1, 8], strides=None, padding='same', data_format='channels_last')(lev2_output_pre) #change to [1,6] - zoe
     final = layers.Reshape([-1,],name='1ev1')(final)
     model_small = Model(inputs=[input, input_mask], outputs=[lev2_output_act, final])
     model_big = Model(inputs=[input, input_mask], outputs=[final])
     adam = optimizers.Adam(lr=lr)
     model_big.compile(optimizer=adam, loss='binary_crossentropy', metrics=['accuracy'])
     model_small.compile(optimizer=adam, loss=['binary_crossentropy', 'binary_crossentropy'], metrics = ['accuracy'])
-    model_big.summary()
-    model_small.summary()
+    model_big.summary() #outputs only most coarsegrained categories
+    model_small.summary() #outputs both finegrained and coarsgranied categories
     return model_big, model_small
 
 def singlemodel_cpu(train_x):
@@ -322,7 +336,7 @@ def process_input_train(seq_file,dir):
             if os.path.exists(inputfile):
                 os.remove(inputfile)
             SeqIO.write(seq_record, inputfile, 'fasta')
-            psiblast_cline = NcbipsiblastCommandline(query=inputfile, db='./db/swissprot/swissprot', num_iterations=3,
+            psiblast_cline = NcbipsiblastCommandline(query=inputfile, db='./db/swissprot', num_iterations=3,
                                                      evalue=0.001, out_ascii_pssm=pssmfile, num_threads=4)
             stdout, stderr = psiblast_cline()
             os.remove(inputfile)
@@ -343,12 +357,12 @@ def process_input_user(seq_file,dir):
                 os.remove(inputfile)
             SeqIO.write(seq_record, inputfile, 'fasta')
             try:
-              psiblast_cline = NcbipsiblastCommandline(query=inputfile, db='./db/swissprot/swissprot', num_iterations=3,
+              psiblast_cline = NcbipsiblastCommandline(query=inputfile, db='./db/swissprot', num_iterations=3,
                                                      evalue=0.001, out_ascii_pssm=pssmfile, num_threads=4)
               stdout, stderr = psiblast_cline()
               os.remove(inputfile)
             except:
-              print("invalid protein: "+seq_record)
+              print("invalid protein: " + seq_record)
 
         index=index+1
 
