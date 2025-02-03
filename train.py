@@ -194,11 +194,11 @@ def main():
     parser.add_argument('--model_output', dest='outputdir', type=str, help='the name of the directory where the trained model stores', required=True)
     parser.add_argument('-existPSSM', dest='existPSSM', type=str,
                         help='the name of the existing PSSM directory if there is one.', required=False, default="")
-    parser.add_argument('-numfolds', type=int,
+    parser.add_argument('--numfolds', type=int,
                         help='number of cross validation folds', required=False, default=8)
-    parser.add_argument('-coarse', type=int,
+    parser.add_argument('--coarse', type=int,
                         help='number of cross validation folds', required=False, default=10)
-    parser.add_argument('-fine', type=int,
+    parser.add_argument('-=fine', type=int,
                         help='number of cross validation folds', required=False, default=8)
     parser.set_defaults(feature=True)
     args = parser.parse_args()
