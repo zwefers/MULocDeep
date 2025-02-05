@@ -67,6 +67,7 @@ def endpad(seqfile, labelfile, pssmdir="", npzfile = "", coarse=10, fine=8):
         np.savez(npzfile, x=x, y=y, mask=mask, ids=ids)
         return [x, y, mask,ids]
     else:
+        print(npzfile)
         mask = np.load(npzfile)['mask']
         x = np.load(npzfile)['x']
         y = np.load(npzfile)['y']
@@ -83,14 +84,14 @@ def train_MULocDeep(lv1_dir,lv2_dir,pssm_dir,output_dir,foldnum,coarse=10,fine=1
         lv2_dir+"lv2_train_fold" + str(foldnum) + "_seq",
         lv2_dir+"lv2_train_fold" + str(foldnum) + "_lab",
         pssm_dir,
-        lv2_dir+"/npzfiles/lv2_train_fold"+str(foldnum)+"_seq.npz",
+        lv2_dir+"npzfiles/lv2_train_fold"+str(foldnum)+"_seq.npz",
         coarse, 
         fine)
     [val_x, val_y, val_mask,val_ids] = endpad(
         lv2_dir+"lv2_val_fold" + str(foldnum) + "_seq",
         lv2_dir+"lv2_val_fold" + str(foldnum) + "_lab",
         pssm_dir,
-        lv2_dir+"/npzfiles/lv2_val_fold"+str(foldnum)+"_seq.npz",
+        lv2_dir+"npzfiles/lv2_val_fold"+str(foldnum)+"_seq.npz",
         coarse, 
         fine)
 
@@ -99,7 +100,7 @@ def train_MULocDeep(lv1_dir,lv2_dir,pssm_dir,output_dir,foldnum,coarse=10,fine=1
         lv1_dir + "lv1_train_fold" + str(foldnum) + "_seq",
         lv1_dir + "lv1_train_fold" + str(foldnum) + "_lab",
         pssm_dir,
-        lv1_dir+"/npzfiles/lv1_train_fold" + str(foldnum) + "_seq.npz",
+        lv1_dir+"npzfiles/lv1_train_fold" + str(foldnum) + "_seq.npz",
         coarse, 
         fine)
 
@@ -107,7 +108,7 @@ def train_MULocDeep(lv1_dir,lv2_dir,pssm_dir,output_dir,foldnum,coarse=10,fine=1
         lv1_dir + "lv1_val_fold" + str(foldnum) + "_seq",
         lv1_dir + "lv1_val_fold" + str(foldnum) + "_lab",
         pssm_dir,
-        lv1_dir+"/npzfiles/lv1_val_fold" + str(foldnum) + "_seq.npz",
+        lv1_dir+"npzfiles/lv1_val_fold" + str(foldnum) + "_seq.npz",
         coarse, 
         fine)
 
