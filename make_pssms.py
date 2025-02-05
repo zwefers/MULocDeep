@@ -15,10 +15,13 @@ def write_fasta(fasta_name, keys, sequences):
             f.write(f"{seq}\n")
 
 
-def process_input_user(df,dir):
+def process_input_user(df,dir,db):
     for i, row in df.iterrows():
         uniprot_id = row.uniprot_id
-        sequence = row.Sequence
+        if "Sequence" in df.columns:
+            sequence = row.Sequence
+        else:
+            sequence = row.sequence
         print(f"Processing protien {uniprot_id}")
         pssmfile=dir+uniprot_id+"_pssm.txt"
         inputfile=dir+uniprot_id+"_tem.fasta"
@@ -28,11 +31,8 @@ def process_input_user(df,dir):
                 print(inputfile)
                 os.remove(inputfile)
             write_fasta(inputfile, [uniprot_id], [sequence])
-            psiblast_cline = NcbipsiblastCommandline(query=inputfile, db='./db/swissprot/swissprot', num_iterations=3,
-                                    evalue=0.001, out_ascii_pssm=pssmfile, num_threads=4)
-            stdout, stderr = psiblast_cline()
             try:
-                psiblast_cline = NcbipsiblastCommandline(query=inputfile, db='./db/swissprot/swissprot', num_iterations=3,
+                psiblast_cline = NcbipsiblastCommandline(query=inputfile, db=db, num_iterations=3,
                                                         evalue=0.001, out_ascii_pssm=pssmfile, num_threads=4)
                 stdout, stderr = psiblast_cline()
                 print(stderr)
@@ -43,14 +43,16 @@ def process_input_user(df,dir):
     
 
 if __name__ == "__main__":
-    argparser = argparse.ArgumentParser(description="SearchFirst config file path")
+    argparser = argparse.ArgumentParser(description="")
     argparser.add_argument("--csv", default="./data/uniprot_trainset.csv", help="path to data file")
     argparser.add_argument("--dir", default="./test_pssm/", help="directory to save pssm files")
-    argparser.add_argument("--n_cores", type=int, default=1, help="path to data file")
+    argparser.add_argument("--db", default="./seq2loc_db/seq2loc_db", help="blast database")
+    argparser.add_argument("--n_cores", type=int, default=1, help="number of cpus")
 
     args = argparser.parse_args()
     csv = args.csv
     directory = args.dir
+    db = args.db
     n_cores = args.n_cores
 
     df = pd.read_csv(csv)
@@ -59,6 +61,6 @@ if __name__ == "__main__":
     #device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     joblib.Parallel(n_jobs=n_cores)(
-                joblib.delayed(process_input_user)(split_df, directory)
+                joblib.delayed(process_input_user)(split_df, directory, db)
                 for split_df in split_dfs
             )

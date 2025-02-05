@@ -298,7 +298,7 @@ def singlemodel_cpu(train_x, coarse=10, fine=8):
     model_small.summary()
     return model_big, model_small
 
-def process_input_train(seq_file,dir):
+def process_input_train(seq_file,dir,db):
     processed_num=0
     if not os.path.exists(dir):
         os.mkdir(dir)
@@ -312,12 +312,12 @@ def process_input_train(seq_file,dir):
             if os.path.exists(inputfile):
                 os.remove(inputfile)
             SeqIO.write(seq_record, inputfile, 'fasta')
-            psiblast_cline = NcbipsiblastCommandline(query=inputfile, db='./db/swissprot/swissprot', num_iterations=3,
+            psiblast_cline = NcbipsiblastCommandline(query=inputfile, db=db, num_iterations=3,
                                                      evalue=0.001, out_ascii_pssm=pssmfile, num_threads=4)
             stdout, stderr = psiblast_cline()
             os.remove(inputfile)
 
-def process_input_user(seq_file,dir):
+def process_input_user(seq_file,dir,db):
     processed_num=0
     if not os.path.exists(dir):
         os.mkdir(dir)
@@ -333,7 +333,7 @@ def process_input_user(seq_file,dir):
                 os.remove(inputfile)
             SeqIO.write(seq_record, inputfile, 'fasta')
             try:
-              psiblast_cline = NcbipsiblastCommandline(query=inputfile, db='./db/swissprot/swissprot', num_iterations=3,
+              psiblast_cline = NcbipsiblastCommandline(query=inputfile, db=db, num_iterations=3,
                                                      evalue=0.001, out_ascii_pssm=pssmfile, num_threads=4)
               stdout, stderr = psiblast_cline()
               os.remove(inputfile)

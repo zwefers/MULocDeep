@@ -76,20 +76,21 @@ def endpad(seqfile, labelfile, pssmdir="", npzfile = "", coarse=10, fine=8):
 
 
 def train_MULocDeep(lv1_dir,lv2_dir,pssm_dir,output_dir,foldnum,coarse=10,fine=10):
-
+    os.makedirs(lv2_dir+"/npzfiles", exist_ok=True)
+    os.makedirs(lv1_dir+"/npzfiles", exist_ok=True)
     # get small data = #lv2 annotation = more finegrained = matrix output = (10,8)
     [train_x, train_y, train_mask, train_ids] = endpad(
         lv2_dir+"lv2_train_fold" + str(foldnum) + "_seq",
         lv2_dir+"lv2_train_fold" + str(foldnum) + "_lab",
         pssm_dir,
-        "./data/npzfiles/lv2_train_fold"+str(foldnum)+"_seq.npz",
+        lv2_dir+"/npzfiles/lv2_train_fold"+str(foldnum)+"_seq.npz",
         coarse, 
         fine)
     [val_x, val_y, val_mask,val_ids] = endpad(
         lv2_dir+"lv2_val_fold" + str(foldnum) + "_seq",
         lv2_dir+"lv2_val_fold" + str(foldnum) + "_lab",
         pssm_dir,
-        "./data/npzfiles/lv2_val_fold"+str(foldnum)+"_seq.npz",
+        lv2_dir+"/npzfiles/lv2_val_fold"+str(foldnum)+"_seq.npz",
         coarse, 
         fine)
 
@@ -98,7 +99,7 @@ def train_MULocDeep(lv1_dir,lv2_dir,pssm_dir,output_dir,foldnum,coarse=10,fine=1
         lv1_dir + "lv1_train_fold" + str(foldnum) + "_seq",
         lv1_dir + "lv1_train_fold" + str(foldnum) + "_lab",
         pssm_dir,
-        "./data/npzfiles/lv1_train_fold" + str(foldnum) + "_seq.npz",
+        lv1_dir+"/npzfiles/lv1_train_fold" + str(foldnum) + "_seq.npz",
         coarse, 
         fine)
 
@@ -106,7 +107,7 @@ def train_MULocDeep(lv1_dir,lv2_dir,pssm_dir,output_dir,foldnum,coarse=10,fine=1
         lv1_dir + "lv1_val_fold" + str(foldnum) + "_seq",
         lv1_dir + "lv1_val_fold" + str(foldnum) + "_lab",
         pssm_dir,
-        "./data/npzfiles/lv1_val_fold" + str(foldnum) + "_seq.npz",
+        lv1_dir+"/npzfiles/lv1_val_fold" + str(foldnum) + "_seq.npz",
         coarse, 
         fine)
 
@@ -200,14 +201,16 @@ def main():
     parser.add_argument('--MULocDeep_model', dest='modeltype', action='store_true',
                         help='Add this to train the MULocDeep model, otherwise train a variant model', required=False)
     parser.add_argument('--model_output', dest='outputdir', type=str, help='the name of the directory where the trained model stores', required=True)
-    parser.add_argument('-existPSSM', dest='existPSSM', type=str,
+    parser.add_argument('--existPSSM', dest='existPSSM', type=str,
                         help='the name of the existing PSSM directory if there is one.', required=False, default="")
     parser.add_argument('--numfolds', type=int,
                         help='number of cross validation folds', required=False, default=8)
     parser.add_argument('--coarse', type=int,
                         help='number of cross validation folds', required=False, default=10)
-    parser.add_argument('--=fine', type=int,
+    parser.add_argument('--fine', type=int,
                         help='number of cross validation folds', required=False, default=8)
+    parser.add_argument('--db', type=str,
+                        help='database to construct pssms from', required=False)
     parser.set_defaults(feature=True)
     args = parser.parse_args()
     model_type=args.modeltype
@@ -219,6 +222,7 @@ def main():
     numfolds = args.numfolds
     coarse_numclasses = args.coarse
     fine_numclasses = args.fine
+    db = args.db
 
     if model_type==True:
         if not input_lv1[len(input_lv1) - 1] == "/":
@@ -238,10 +242,10 @@ def main():
             if not os.path.exists(pssmdir):
                 os.makedirs(pssmdir)
             for foldnum in range(numfolds): #change to 5 - zoe
-                process_input_train(input_lv1 + "lv1_train_fold" + str(foldnum) + "_seq", pssmdir)
-                process_input_train(input_lv1 + "lv1_val_fold" + str(foldnum) + "_seq", pssmdir)
-                process_input_train(input_lv2 + "lv2_train_fold" + str(foldnum) + "_seq", pssmdir)
-                process_input_train(input_lv2 + "lv2_val_fold" + str(foldnum) + "_seq", pssmdir)
+                process_input_train(input_lv1 + "lv1_train_fold" + str(foldnum) + "_seq", pssmdir, db)
+                process_input_train(input_lv1 + "lv1_val_fold" + str(foldnum) + "_seq", pssmdir, db)
+                process_input_train(input_lv2 + "lv2_train_fold" + str(foldnum) + "_seq", pssmdir, db)
+                process_input_train(input_lv2 + "lv2_val_fold" + str(foldnum) + "_seq", pssmdir, db)
                 train_MULocDeep(input_lv1, input_lv2, pssmdir, outputdir, foldnum, coarse=coarse_numclasses, fine=fine_numclasses)
         else:
             for foldnum in range(numfolds): #change to 5 - zoe
@@ -262,8 +266,8 @@ def main():
             if not os.path.exists(pssmdir):
                 os.makedirs(pssmdir)
             for foldnum in range(numfolds): #change to 5 - zoe
-                process_input_train(input_var+"deeploc_40nr_train_fold" + str(foldnum) + "_seq", pssmdir)
-                process_input_train(input_var + "deeploc_40nr_var_fold" + str(foldnum) + "_seq", pssmdir)
+                process_input_train(input_var+"deeploc_40nr_train_fold" + str(foldnum) + "_seq", pssmdir, db)
+                process_input_train(input_var + "deeploc_40nr_var_fold" + str(foldnum) + "_seq", pssmdir, db)
                 train_var(input_var, pssmdir, outputdir, foldnum)
         else:
             for foldnum in range(numfolds): #change to 5 - zoe
