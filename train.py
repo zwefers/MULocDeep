@@ -9,6 +9,7 @@ import sys
 from utils import *
 import calendar
 import time
+from tensorflow.python.client import device_lib
 
 def process_eachseq(seq,pssmfile,mask_seq,new_pssms):
     seql = len(seq)
@@ -224,6 +225,8 @@ def main():
     coarse_numclasses = args.coarse
     fine_numclasses = args.fine
     db = args.db
+
+    print(device_lib.list_local_devices())
 
     if model_type==True:
         if not input_lv1[len(input_lv1) - 1] == "/":

@@ -2,15 +2,16 @@ import os
 import tensorflow as tf
 import numpy as np
 import keras
-from keras import layers
-from keras import optimizers
-from keras.layers import *
-from keras.models import Model
-from keras import backend as K
+from tensorflow.keras import layers
+from tensorflow.keras import optimizers
+from tensorflow.keras.layers import *
+from tensorflow.keras.models import Model
+from tensorflow.keras import backend as K
 from Bio.Blast.Applications import NcbipsiblastCommandline
 from Bio import SeqIO
 import sys
 from hier_attention_mask import Attention
+from tensorflow.compat.v1.keras.layers import CuDNNLSTM
 
 def convertSampleToPhysicsVector_pca(seq):
     """
@@ -238,7 +239,7 @@ def singlemodel(train_x, coarse=10, fine=8):
     final = layers.Reshape([-1,],name='1ev1')(final)
     model_small = Model(inputs=[input, input_mask], outputs=[lev2_output_act, final])
     model_big = Model(inputs=[input, input_mask], outputs=[final])
-    adam = optimizers.Adam(lr=lr)
+    adam = tf.keras.optimizers.Adam(lr=lr)
     model_big.compile(optimizer=adam, loss='binary_crossentropy', metrics=['accuracy'])
     model_small.compile(optimizer=adam, loss=['binary_crossentropy', 'binary_crossentropy'], metrics = ['accuracy'])
     model_big.summary() #outputs only most coarsegrained categories

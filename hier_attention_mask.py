@@ -1,8 +1,9 @@
-from keras import backend as K
-from keras.engine.topology import Layer
+from tensorflow.keras import backend as K
+#from keras.engine.topology import Layer
+from tensorflow.keras.layers import Layer, InputSpec
 import numpy as np
-from keras import activations, initializers, regularizers, constraints
-from keras.engine import InputSpec
+from tensorflow.keras import activations, initializers, regularizers, constraints
+#from keras.engine import InputSpec
 import keras
 import tensorflow as tf
 class Attention(Layer):
@@ -99,7 +100,7 @@ class Attention(Layer):
         #    K.permute_dimensions(attention, (0, 2, 1))) - eye)) / batch_size
         # batch_size=K.eval(K.shape(attention)[0])
         batch_size = K.cast(K.shape(attention)[0], K.floatx())
-        identity = K.eye(self.r)  # [r,r]
+        identity = tf.eye(self.r)  # [r,r]
         temp = K.batch_dot(attention, K.permute_dimensions(attention, (0, 2, 1))) - identity  # [none, r, r]
         penal = self.attention_regularizer_weight * K.sum(K.square(temp)) / batch_size
         return penal
