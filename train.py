@@ -150,6 +150,10 @@ def train_MULocDeep(lv1_dir,lv2_dir,pssm_dir,output_dir,foldnum,coarse=10,fine=1
     for i in range(80):
         # train small model
         print("epoch "+str(i)+"\n")
+        print(train_x.shape)
+        print(train_mask.shape)
+        print(train_x_big.shape)
+        print(train_mask_big.shape)
         fitHistory_batch_small = model_small.fit([train_x, train_mask.reshape(-1, 1000, 1)],
                                                  [train_y,getTrue4out1(train_y)],
                                                  batch_size=batch_size, epochs=1,
@@ -159,7 +163,7 @@ def train_MULocDeep(lv1_dir,lv2_dir,pssm_dir,output_dir,foldnum,coarse=10,fine=1
         
         # train big model
         fitHistory_batch_big = model_big.fit([train_x_big, train_mask_big.reshape(-1, 1000, 1)],
-                                             [getTrue4out1(train_y_big)],
+                                             getTrue4out1(train_y_big),
                                              batch_size=batch_size, epochs=1,
                                              validation_data=(
                                              [val_x_big, val_mask_big.reshape(-1, 1000, 1)], [getTrue4out1(val_y_big)]),
