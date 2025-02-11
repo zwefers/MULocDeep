@@ -22,13 +22,13 @@ def process_input_user(df,dir,db):
             sequence = row.Sequence
         else:
             sequence = row.sequence
-        print(f"Processing protien {uniprot_id}")
+        print(f"Processing protein {uniprot_id}")
         pssmfile=dir+uniprot_id+"_pssm.txt"
         inputfile=dir+uniprot_id+"_tem.fasta"
 
-        if not os.path.exists(pssmfile):
+        if True:
+        #if not os.path.exists(pssmfile):
             if os.path.exists(inputfile):
-                print(inputfile)
                 os.remove(inputfile)
             write_fasta(inputfile, [uniprot_id], [sequence])
             try:
@@ -46,7 +46,7 @@ if __name__ == "__main__":
     argparser = argparse.ArgumentParser(description="")
     argparser.add_argument("--csv", default="./data/uniprot_trainset.csv", help="path to data file")
     argparser.add_argument("--dir", default="./test_pssm/", help="directory to save pssm files")
-    argparser.add_argument("--db", default="./seq2loc_db/seq2loc_db", help="blast database")
+    argparser.add_argument("--db", required=True,  help="blast database")
     argparser.add_argument("--n_cores", type=int, default=1, help="number of cpus")
 
     args = argparser.parse_args()

@@ -1,0 +1,16 @@
+name: mulocdeep_env2
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - numpy=1.19.5
+  - keras
+  - tensorflow-gpu
+  - blast
+  - cudatoolkit
+  - cudnn
+  - scikit-learn
+  - scipy
+  - biopython
+  - pandas=1.4.1
