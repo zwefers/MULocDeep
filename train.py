@@ -1,6 +1,7 @@
+
 import os
 import tensorflow as tf
-from keras.callbacks import EarlyStopping, ModelCheckpoint
+from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
 from sklearn.metrics import multilabel_confusion_matrix, confusion_matrix
 import math
 from itertools import product
@@ -16,6 +17,10 @@ def process_eachseq(seq,pssmfile,mask_seq,new_pssms):
     if os.path.exists(pssmfile):
         print("found " + pssmfile + "\n")
         pssm = readPSSM(pssmfile)
+        if pssm.shape[0] != seql:
+            print(pssmfile + " is wrong shape\n")
+            print("using Blosum62\n")
+            pssm = convertSampleToBlosum62(seq)
     else:
         print("using Blosum62\n")
         pssm = convertSampleToBlosum62(seq)
@@ -146,14 +151,10 @@ def train_MULocDeep(lv1_dir,lv2_dir,pssm_dir,output_dir,foldnum,coarse=10,fine=1
                                           mode='min',
                                           save_weights_only=True, verbose=1)
     
-    
-    for i in range(80):
+
+    for i in range(25): #was 80
         # train small model
         print("epoch "+str(i)+"\n")
-        print(train_x.shape)
-        print(train_mask.shape)
-        print(train_x_big.shape)
-        print(train_mask_big.shape)
         fitHistory_batch_small = model_small.fit([train_x, train_mask.reshape(-1, 1000, 1)],
                                                  [train_y,getTrue4out1(train_y)],
                                                  batch_size=batch_size, epochs=1,
@@ -285,3 +286,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
