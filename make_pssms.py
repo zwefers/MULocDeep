@@ -26,8 +26,7 @@ def process_input_user(df,dir,db):
         pssmfile=dir+uniprot_id+"_pssm.txt"
         inputfile=dir+uniprot_id+"_tem.fasta"
 
-        if True:
-        #if not os.path.exists(pssmfile):
+        if not os.path.exists(pssmfile):
             if os.path.exists(inputfile):
                 os.remove(inputfile)
             write_fasta(inputfile, [uniprot_id], [sequence])
@@ -57,8 +56,7 @@ if __name__ == "__main__":
 
     df = pd.read_csv(csv)
     split_dfs = np.array_split(df, n_cores)
-
-    #device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    os.makedirs(directory, exist_ok=True)
 
     joblib.Parallel(n_jobs=n_cores)(
                 joblib.delayed(process_input_user)(split_df, directory, db)

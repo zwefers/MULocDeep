@@ -157,6 +157,7 @@ def main():
     mapping = load_config("./data/mulocdeep_mapping.yaml")
     fine_idxs, fine_labels = get_fine_idxs(coarse, fine, mapping, level)
     coarse_labels = mapping[f"level{coarse_level}"].keys()
+    coarse_labels = np.array(list(coarse_labels))
 
     #Get Target Values for Test set
     test_y_coarse = get_y(testset, coarse_level, coarse_labels)
@@ -252,8 +253,9 @@ def main():
     test_preds_coarse = np.array(all_test_preds_coarse)
     test_probs_fine = test_probs_fine.mean(axis=0) #(num samples, num classes)
     test_probs_coarse = test_probs_coarse.mean(axis=0)
-    test_preds_fine = test_preds_fine.max(axis=0)
-    test_preds_coarse = test_preds_coarse.max(axis=0)
+    test_preds_fine = np.array(test_preds_fine.mean(axis=0) > 0.5, dtype=np.int32) #corrected
+    test_preds_coarse = (test_preds_coarse.mean(axis=0) > 0.5).astype(np.int32) #corrected
+
     np.savez(
             f"{savedir}/test_outputs.npz", 
             ids=testset[id_col].to_numpy(),
@@ -266,32 +268,29 @@ def main():
             )
 
     idxs = np.where(test_y_fine.sum(axis=0) != 0)[0]
-    test_y_fine = test_y_fine[idxs]
-    test_probs_fine = test_probs_fine[idxs]
-    test_preds_fine = test_preds_fine[idxs]
-    thresholds_fine=thresholds_fine[idxs]
+    test_y_fine = test_y_fine[:, idxs]
+    test_probs_fine = test_probs_fine[:, idxs]
+    test_preds_fine = test_preds_fine[:, idxs]
 
 
     _, fine_metrics_perclass, fine_metrics_avg = all_metrics(
                                                     test_y_fine,
                                                     test_probs_fine,
-                                                    y_pred_bin=test_preds_fine,
-                                                    thresholds=thresholds_fine)
+                                                    y_pred_bin=test_preds_fine)
     fine_metrics_perclass["label"] = np.array(fine_labels)[idxs]
     fine_metrics_avg["level"] = fine_level
     
 
     idxs = np.where(test_y_coarse.sum(axis=0) != 0)[0]
-    test_y_coarse = test_y_coarse[idxs]
-    test_probs_coarse = test_probs_coarse[idxs]
-    test_preds_coarse = test_preds_coarse[idxs]
-    thresholds_coarse=thresholds_coarse[idxs]
+    test_y_coarse = test_y_coarse[:, idxs]
+    test_probs_coarse = test_probs_coarse[:, idxs]
+    test_preds_coarse = test_preds_coarse[:, idxs]
+
     _, coarse_metrics_perclass, coarse_metrics_avg = all_metrics(
                                                     test_y_coarse,
                                                     test_probs_coarse, 
-                                                    y_pred_bin=test_preds_coarse,
-                                                    thresholds=thresholds_coarse)
-    coarse_metrics_perclass["label"] = np.array(coarse_labels)[idxs]
+                                                    y_pred_bin=test_preds_coarse)
+    coarse_metrics_perclass["label"] = coarse_labels[idxs]
     coarse_metrics_avg["level"] = coarse_level
         
 

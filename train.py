@@ -11,6 +11,82 @@ from utils import *
 import calendar
 import time
 from tensorflow.python.client import device_lib
+import pandas as pd
+import yaml
+
+
+def load_config(config_path):
+    with open(config_path, 'r') as file:
+        config = yaml.safe_load(file)
+    return config
+
+def make_input_files(trainset, lv1_dir, lv2_dir, mappings, num_folds):
+
+    def write_labels(filename, labels):
+        with open(filename, "w") as f:
+            for label in labels:
+                f.write(f"{label}\n")
+                
+    def write_fasta(fasta_name, keys, sequences):
+        with open(fasta_name, "w") as f:
+            for i, key in enumerate(keys):
+                seq = sequences[i]
+                f.write(f">{key}\n")
+                f.write(f"{seq}\n")
+
+    def mulocdeep_map(locations, mapping, level):
+        return ";".join([str(mapping[level][loc]) for loc in locations.split(";")])
+        
+    trainset = pd.read_csv(trainset)
+    mappings = load_config(mappings)
+    assert lv1_dir == lv2_dir
+    os.makedirs(lv1_dir, exist_ok=True)
+
+    for i in range(num_folds):
+        train = trainset[trainset.fold != i]
+        val = trainset[trainset.fold == i]
+
+        #Will train 2 models one for level 1+3 and other for level 1+2
+        #level1 is "lv2" in MULocDeep 
+        # and level2/3 is "lv1" in MULocDeep
+        for j in [2,3]:
+            for k in [1,2]:
+
+                #Sequences
+                filename = f"{lv1_dir}/lv{k}_train_fold{i}_seq"
+                if not os.path.exists(filename):
+                    write_fasta(
+                        filename,
+                        #f"data/{dir_name}/level1_{j}/lv{k}_train_fold{i}_seq", 
+                        train.uniprot_id.to_list(),
+                        train.sequence.to_list())
+                    
+                filename = f"{lv1_dir}/lv{k}_val_fold{i}_seq"
+                if not os.path.exists(filename):
+                    write_fasta(
+                        filename,
+                        #f"data/{dir_name}/level1_{j}/lv{k}_val_fold{i}_seq", 
+                        val.uniprot_id.to_list(),
+                        val.sequence.to_list())
+                    
+                #Labels
+                filename = f"{lv1_dir}/lv{k}_train_fold{i}_lab"
+                if not os.path.exists(filename):
+                    write_labels(
+                        filename,
+                        #f"data/MULocDeep/level1_{j}/lv{k}_train_fold{i}_lab",
+                        train.level1.apply(lambda x: mulocdeep_map(x, mappings, f"level1_{j}"))
+                        )
+                
+                filename = f"{lv1_dir}/lv{k}_val_fold{i}_lab"
+                if not os.path.exists(filename):
+                    write_labels(
+                        filename,
+                        #f"data/MULocDeep/level1_{j}/lv{k}_val_fold{i}_lab",
+                        val.level1.apply(lambda x: mulocdeep_map(x, mappings, f"level1_{j}"))
+                        )
+
+
 
 def process_eachseq(seq,pssmfile,mask_seq,new_pssms):
     seql = len(seq)
@@ -200,11 +276,14 @@ def train_var(input_var,pssm_dir,output_dir,foldnum):
 
 def main():
     parser=argparse.ArgumentParser(description='MULocDeep: interpretable protein localization classifier at sub-cellular and sub-organellar levels')
-    parser.add_argument('--lv1_input_dir', dest='lv1_dir', type=str, help='sub-cellular training data, contains 8 folds protein sequences and labels', required=False)
+    parser.add_argument('--trainset', type=str, help='csv with protein subcellular locations and sequences', required=False, default=None)
+    parser.add_argument('--mapping', type=str, help='yaml that maps locations to decimal representation', required=False, default=None)
+    parser.add_argument('--lv1_input_dir', dest='lv1_dir', type=str, 
+                        help='sub-cellular training data, contains folds of protein sequences and labels', required=False)
     parser.add_argument('--lv2_input_dir', dest='lv2_dir', type=str,
-                        help='sub-cellular training data, contains 8 folds protein sequences and labels', required=False)
+                        help='sub-cellular training data, contains folds of protein sequences and labels', required=False)
     parser.add_argument('--input_dir', dest='var_dir', type=str,
-                        help='data for traing the variant model, contains 8 folds protein sequences and labels', required=False)
+                        help='data for traing the variant model, contains folds of protein sequences and labels', required=False)
     parser.add_argument('--MULocDeep_model', dest='modeltype', action='store_true',
                         help='Add this to train the MULocDeep model, otherwise train a variant model', required=False)
     parser.add_argument('--model_output', dest='outputdir', type=str, help='the name of the directory where the trained model stores', required=True)
@@ -221,6 +300,8 @@ def main():
     parser.set_defaults(feature=True)
     args = parser.parse_args()
     model_type=args.modeltype
+    trainset = args.trainset
+    mapping = args.mapping
     input_lv1=args.lv1_dir
     input_lv2 = args.lv2_dir
     input_var=args.var_dir
@@ -232,6 +313,10 @@ def main():
     db = args.db
 
     print(device_lib.list_local_devices())
+
+    #Make input files if they don't already exist
+    if trainset is not None:
+        make_input_files(trainset, input_lv1, input_lv2, mapping, numfolds)
 
     if model_type==True:
         if not input_lv1[len(input_lv1) - 1] == "/":

@@ -88,7 +88,6 @@ def thresh_wrap(y_pred, thresholds):
     return y_pred_bin.astype(np.int16)
 
 
-
 def all_metrics(y_true, y_pred, y_pred_bin=None, thresholds=None, continuous=True):
     if continuous:
         if y_pred_bin is None:

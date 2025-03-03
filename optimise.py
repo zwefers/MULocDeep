@@ -1,14 +1,14 @@
 import numpy as np
 import keras
-from keras import layers
-from keras import optimizers
-from keras.layers import *
-from keras.models import Model
+from tensorflow.keras import layers
+from tensorflow.keras import optimizers
+from tensorflow.keras.layers import *
+from tensorflow.keras.models import Model
 from hier_attention_mask import Attention
-from keras import backend as K
+from tensorflow.keras import backend as K
 #from Bio.Blast.Applications import NcbipsiblastCommandline
 #from Bio import SeqIO
-from keras.metrics import categorical_accuracy, binary_crossentropy
+from tensorflow.keras.metrics import categorical_accuracy, binary_crossentropy
 import matplotlib.pyplot as plt
 import os
 import calendar
@@ -58,7 +58,7 @@ def endpad(seqfile, labelfile, pssmdir="", npzfile = ""):
                 mask_seq.append(gen_mask_mat(1000, 0))
             line = f.readline()
         x = np.array(new_pssms)
-        y = [convertlabels_to_categorical(i) for i in labels]
+        y = [convertlabels_to_categorical(i) for i in labels] #maybe change convertlabels_to_categorical
         y = np.array(y)
         mask = np.array(mask_seq)
         np.savez(npzfile, x=x, y=y, mask=mask, ids=ids)
@@ -79,13 +79,28 @@ bds = [{'name': 'hidden_dim', 'type': 'continuous', 'domain': (32, 490)},
        {'name': 'drop_per', 'type': 'continuous', 'domain': (0.1, 0.75)},
        {'name': 'drop_hid', 'type': 'continuous', 'domain': (0.1, 0.75)}]
 
+input_dir = "/hai/scratch/zwefers/seq2loc/mulocdeep/input/level1_3/"
+pssm_dir = "/hai/scratch/zwefers/seq2loc/mulocdeep/pssms/swissprot_pssms/"
+num_folds = 5
+
 train_data=[]
 val_data=[]
-for i in range(8):
-    train_data.append(endpad( "./data/deeploc_40nr_8folds/deeploc_40nr_train_fold"+str(i)+"_seq", "./data/deeploc_40nr_8folds/deeploc_40nr_train_fold"+str(i)+"_label","./data/deeploc_train_pssm/","./data/deeploc_40nr_8folds/deeploc_40nr_train_S_1000_fold"+str(i)+".npz"))
-    val_data.append(endpad("./data/deeploc_40nr_8folds/deeploc_40nr_val_fold"+str(i)+"_seq", "./data/deeploc_40nr_8folds/deeploc_40nr_val_fold"+str(i)+"_label","./data/deeploc_train_pssm/","./data/deeploc_40nr_8folds/deeploc_40nr_val_S_1000_fold"+str(i)+".npz"))
 
-for foldnum in range(8):
+for i in range(num_folds):
+    train_data.append(endpad(
+                            f"{input_dir}/lv1_train_fold{i}_seq", 
+                            f"{input_dir}/lv1_train_fold{i}_lab",
+                            pssm_dir,
+                            f"{input_dir}/npzfiles/lv1_train_fold{i}_seq.npz",
+                            ))
+    val_data.append(endpad(
+                            f"{input_dir}/lv1_val_fold{i}_seq", 
+                            f"{input_dir}/lv1_val_fold{i}_lab",
+                            pssm_dir,
+                            f"{input_dir}/npzfiles/lv1_val_fold{i}_seq.npz",
+                            ))
+
+for foldnum in range(num_folds):
     runtimes = 0
     train_x=train_data[foldnum][0]
     train_y=train_data[foldnum][1]
@@ -96,7 +111,7 @@ for foldnum in range(8):
     def score(parameters, foldnum=foldnum):
        try:
         print("optimizing for foldnum:" + str(foldnum))
-        output = open("./deeplocdata_phyChpssm_batchnorm_40nr/costum_record_fold" + str(foldnum) + ".txt", 'a')
+        output = open(f"optimize{foldnum}.txt", 'a')
         parameters = parameters[0]
         dim_lstm = int(parameters[0])
         da = int(parameters[1])
@@ -185,11 +200,11 @@ for foldnum in range(8):
     # optimizer.plot_convergence()
     best_x = optimizer.x_opt
     best_y = optimizer.fx_opt
-    output = open("./deeplocdata_phyChpssm_batchnorm_40nr/costum_record_" + str(foldnum) + ".txt", 'a')
+    output = open(f"optimize_{foldnum}.txt", 'a')
     output.write("best_x:" + ",".join([str(x) for x in best_x]) + "\n")
     output.write("best_y:" + str(best_y) + "\n")
     output.close()
-    optimizer.plot_convergence(filename="./deeplocdata_phyChpssm_batchnorm_40nr/"+str(foldnum))
+    optimizer.plot_convergence(filename=f"optimize_fold{foldnum}")
     # output2 = open("nocnncapsule_optimizedparameters_fold.txt", 'a')
     # output2.write("Fold:" + str(foldnum) + "\n")
     # output2.write(",".join([str(x) for x in best_x]) + "\n")
