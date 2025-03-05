@@ -41,6 +41,7 @@ def make_input_files(trainset, lv1_dir, lv2_dir, mappings, num_folds):
     mappings = load_config(mappings)
     assert lv1_dir == lv2_dir
     os.makedirs(lv1_dir, exist_ok=True)
+    lvl = lv1_dir.split("/")[-1]
 
     for i in range(num_folds):
         train = trainset[trainset.fold != i]
@@ -49,42 +50,38 @@ def make_input_files(trainset, lv1_dir, lv2_dir, mappings, num_folds):
         #Will train 2 models one for level 1+3 and other for level 1+2
         #level1 is "lv2" in MULocDeep 
         # and level2/3 is "lv1" in MULocDeep
-        for j in [2,3]:
-            for k in [1,2]:
+        for k in [1,2]:
 
-                #Sequences
-                filename = f"{lv1_dir}/lv{k}_train_fold{i}_seq"
-                if not os.path.exists(filename):
-                    write_fasta(
-                        filename,
-                        #f"data/{dir_name}/level1_{j}/lv{k}_train_fold{i}_seq", 
-                        train.uniprot_id.to_list(),
-                        train.sequence.to_list())
-                    
-                filename = f"{lv1_dir}/lv{k}_val_fold{i}_seq"
-                if not os.path.exists(filename):
-                    write_fasta(
-                        filename,
-                        #f"data/{dir_name}/level1_{j}/lv{k}_val_fold{i}_seq", 
-                        val.uniprot_id.to_list(),
-                        val.sequence.to_list())
-                    
-                #Labels
-                filename = f"{lv1_dir}/lv{k}_train_fold{i}_lab"
-                if not os.path.exists(filename):
-                    write_labels(
-                        filename,
-                        #f"data/MULocDeep/level1_{j}/lv{k}_train_fold{i}_lab",
-                        train.level1.apply(lambda x: mulocdeep_map(x, mappings, f"level1_{j}"))
-                        )
+            #Sequences
+            filename = f"{lv1_dir}/lv{k}_train_fold{i}_seq"
+            if not os.path.exists(filename):
+                write_fasta(
+                    filename,
+                    train.uniprot_id.to_list(),
+                    train.sequence.to_list())
                 
-                filename = f"{lv1_dir}/lv{k}_val_fold{i}_lab"
-                if not os.path.exists(filename):
-                    write_labels(
-                        filename,
-                        #f"data/MULocDeep/level1_{j}/lv{k}_val_fold{i}_lab",
-                        val.level1.apply(lambda x: mulocdeep_map(x, mappings, f"level1_{j}"))
-                        )
+            filename = f"{lv1_dir}/lv{k}_val_fold{i}_seq"
+            if not os.path.exists(filename):
+                write_fasta(
+                    filename,
+                    val.uniprot_id.to_list(),
+                    val.sequence.to_list())
+                
+            #Labels
+            filename = f"{lv1_dir}/lv{k}_train_fold{i}_lab"
+            if not os.path.exists(filename):
+                write_labels(
+                    filename,
+                    train.level1.apply(lambda x: mulocdeep_map(x, mappings, lvl))
+                    )
+            
+            filename = f"{lv1_dir}/lv{k}_val_fold{i}_lab"
+            if not os.path.exists(filename):
+                write_labels(
+                    filename,
+                    #f"data/MULocDeep/level1_{j}/lv{k}_val_fold{i}_lab",
+                    val.level1.apply(lambda x: mulocdeep_map(x, mappings, lvl))
+                    )
 
 
 
@@ -150,10 +147,10 @@ def endpad(seqfile, labelfile, pssmdir="", npzfile = "", coarse=10, fine=8):
         return [x, y, mask,ids]
     else:
         print(npzfile)
-        mask = np.load(npzfile)['mask']
-        x = np.load(npzfile)['x']
-        y = np.load(npzfile)['y']
-        ids=np.load(npzfile)['ids']
+        mask = np.load(npzfile, allow_pickle=True)['mask']
+        x = np.load(npzfile, allow_pickle=True)['x']
+        y = np.load(npzfile, allow_pickle=True)['y']
+        ids=np.load(npzfile, allow_pickle=True)['ids']
         return [x, y, mask,ids]
 
 

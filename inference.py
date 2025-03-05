@@ -122,14 +122,16 @@ def main():
     id_col = args.id_col
     level = args.level
 
+    os.makedirs(savedir, exist_ok=True)
+
     if level == "level1_3":
         coarse = 8
-        fine = 6
+        fine = 7
         fine_level = 1
         coarse_level = 3
     elif level == "level1_2":
         coarse = 10
-        fine = 4
+        fine = 5
         fine_level = 1
         coarse_level = 2
     else:
@@ -141,16 +143,6 @@ def main():
     assert id_col in trainset.columns
     testset = pd.read_csv(test_csv)
     assert id_col in testset.columns
-    bad_list = {'ENSG00000047849',
-                'ENSG00000064042',
-                'ENSG00000089159',
-                'ENSG00000109686',
-                'ENSG00000130363',
-                'ENSG00000133030',
-                'ENSG00000137501',
-                'ENSG00000153130',
-                'ENSG00000185499'}
-    testset = testset[~testset.ensembl_ids.isin(bad_list)].reset_index(drop=True)
     test_x, test_mask = endpad(testset, pssmdir=existPSSM, coarse=coarse, fine=fine)
 
     #Get orde of categories
