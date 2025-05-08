@@ -217,13 +217,15 @@ def main():
         test_probs = model_small.predict([test_x, test_mask.reshape(-1, 1000, 1)])[0] #(num samples, coarse, fine)
         test_probs_fine = test_probs.reshape(test_probs.shape[0], -1)[:, fine_idxs]  #(num samples, num_classes=21)
         test_preds_fine = test_probs_fine > thresholds_fine[np.newaxis, :]
-        test_max_fine = (test_probs_fine==test_probs_fine.max(axis=1))
-        test_preds_fine = np.logical_or(test_preds_fine, test_max_fine)
+        print((test_preds_fine.sum(axis=1)>=1).mean())
+        #test_max_fine = (test_probs_fine==test_probs_fine.max(axis=1))
+        #test_preds_fine = np.logical_or(test_preds_fine, test_max_fine)
         
         test_probs_coarse = test_probs.max(axis=2)  #(num samples, coarse)
         test_preds_coarse = test_probs_coarse > thresholds_coarse[np.newaxis, :]
-        test_max_coarse = (test_probs_fine==test_probs_coarse.max(axis=1))
-        test_preds_coarse = np.logical_or(test_preds_coarse, test_max_coarse)
+        print((test_preds_coarse.sum(axis=1)>=1).mean())
+        #test_max_coarse = (test_probs_fine==test_probs_coarse.max(axis=1))
+        #test_preds_coarse = np.logical_or(test_preds_coarse, test_max_coarse)
 
         all_test_probs_fine.append(test_probs_fine)
         all_test_probs_coarse.append(test_probs_coarse)

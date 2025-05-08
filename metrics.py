@@ -95,7 +95,8 @@ def all_metrics(y_true, y_pred, y_pred_bin=None, thresholds=None, continuous=Tru
                 thresholds = [get_best_threshold_mcc(y_true[:, i], y_pred[:, i]) for i in range(y_true.shape[1])]
                 thresholds = np.array(thresholds)
                 print(thresholds)
-            y_pred_bin = thresh_wrap(y_pred, thresholds)
+            #y_pred_bin = thresh_wrap(y_pred, thresholds)
+            y_pred_bin = (y_pred > thresholds).astype(np.int16)
         macro_ap = average_precision_score(y_true, y_pred, average="macro") #continuous
         micro_ap = average_precision_score(y_true, y_pred, average="micro") #continuous
         rocauc_perclass, rocauc_macro, rocauc_micro = roc_auc_wrap(y_true, y_pred) #continuous
