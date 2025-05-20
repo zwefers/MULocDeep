@@ -178,7 +178,7 @@ def all_metrics(y_true, y_pred, y_pred_bin=None, thresholds=None, continuous=Tru
                     f1_macro,
                     f1_micro,
                     jaccard_macro,
-                    f1_micro,
+                    jaccard_micro,
                     rocauc_macro,
                     rocauc_micro,
                     mlrap,

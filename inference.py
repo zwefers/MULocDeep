@@ -13,6 +13,7 @@ import sys
 from utils import *
 import yaml
 from metrics import *
+import re
 import warnings
 from Bio import BiopythonDeprecationWarning
 warnings.simplefilter('ignore', BiopythonDeprecationWarning)
@@ -109,6 +110,9 @@ def main():
     parser.add_argument('--numclasses', type=int, default=21, required=False)
     parser.add_argument('--id_col', type=str, default="uniprot_id", required=False)
     parser.add_argument('--level', type=str, default="level1_3", required=True)
+    parser.add_argument('--single', action='store_true')
+    parser.add_argument('--multi', action='store_true')
+
     parser.set_defaults(feature=True)
     
     args = parser.parse_args()
@@ -121,6 +125,14 @@ def main():
     numfolds = args.numfolds
     id_col = args.id_col
     level = args.level
+    single_label = args.single
+    multi_label = args.multi
+    assert not (single_label and multi_label)
+    if single_label:
+        savedir = f"{savedir}/single_label"
+    elif multi_label:
+        savedir = f"{savedir}/multi_label"
+
 
     os.makedirs(savedir, exist_ok=True)
 
@@ -142,6 +154,35 @@ def main():
     trainset = pd.read_csv(crossval_csv)
     assert id_col in trainset.columns
     testset = pd.read_csv(test_csv)
+    if single_label or multi_label:
+        implicitly_multi = [
+        "actin-filaments",
+        "intermediate-filaments",
+        "centrosome",
+        "microtubules",
+        "endosomes",
+        "lysosomes",
+        "peroxisomes"
+        "lipid-droplets"
+        ]
+        pattern = "|".join(map(re.escape, implicitly_multi))
+
+        single_testset = testset[~testset.level3.str.contains(";")]
+        single_testset.loc[single_testset.level2.str.contains(";"), "level2"] = pd.NA
+        single_testset.loc[
+            (single_testset.level1.str.contains(";")) &
+            ~((single_testset.level1.str.contains(pattern, na=False)) & (single_testset['level1'].str.count(";") == 1)), 
+            "level1"] = pd.NA
+
+        multi_testset = testset[~testset.uniprot_id.isin(single_testset.uniprot_id)]
+        multi_testset.loc[~multi_testset.level2.str.contains(";"), "level2"] = pd.NA
+        multi_testset.loc[~multi_testset.level1.str.contains(";"), "level1"] = pd.NA
+        if single_label:
+            testset = single_testset.dropna() #Because use two levels at one both need to be not NA
+                                              #This means will not be same exact testset as DeepLoc2
+        elif multi_label:
+            testset =multi_testset.dropna()
+
     assert id_col in testset.columns
     test_x, test_mask = endpad(testset, pssmdir=existPSSM, coarse=coarse, fine=fine)
 
