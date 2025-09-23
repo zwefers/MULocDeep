@@ -4,6 +4,7 @@ channels:
   - bioconda
   - defaults
 dependencies:
+  - python=3.9 #added
   - numpy=1.19.5
   - keras
   - tensorflow-gpu

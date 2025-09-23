@@ -1,0 +1,69 @@
+level1_3:
+  cytoskeleton: 0.0
+  actin-filaments: 0.1
+  intermediate-filaments: 0.2
+  centrosome: 0.3
+  microtubules: 0.4
+  plasma-membrane: 1.0
+  cytosol: 2.0
+  endoplasmic-reticulum: 3.0
+  golgi-apparatus: 3.1
+  vesicles: 3.2
+  endosomes: 3.3
+  lysosomes: 3.4
+  peroxisomes: 3.5
+  lipid-droplets: 3.6
+  mitochondria: 4.0
+  nucleoplasm: 5.0
+  nuclear-bodies: 5.1
+  nuclear-membrane: 5.2
+  nuclear-speckles: 5.3
+  nucleoli: 6.0
+  nucleoli-fibrillar-center: 6.1
+  plastid: 7.0
+
+level1_2:
+  cytoskeleton: 0.0
+  actin-filaments: 0.1
+  intermediate-filaments: 0.2
+  centrosome: 0.3
+  microtubules: 0.4
+  plasma-membrane: 1.0
+  cytosol: 2.0
+  endoplasmic-reticulum: 3.0
+  golgi-apparatus: 4.0
+  vesicles: 5.0
+  endosomes: 5.1
+  lysosomes: 5.2
+  peroxisomes: 5.3
+  lipid-droplets: 5.4
+  mitochondria: 6.0
+  nucleoplasm: 7.0
+  nuclear-bodies: 7.1
+  nuclear-membrane: 7.2
+  nuclear-speckles: 7.3
+  nucleoli: 8.0
+  nucleoli-fibrillar-center: 8.1
+  plastid: 9.0
+
+level2:
+  cytoskeleton: 0.0
+  plasma-membrane: 1.0
+  cytosol: 2.0
+  endoplasmic-reticulum: 3.0
+  golgi-apparatus: 4.0
+  vesicles: 5.0
+  mitochondria: 6.0
+  nucleus: 7.0
+  nucleoli: 8.0
+  plastid: 9.0
+
+level3:
+  cytoskeleton: 0.0
+  plasma-membrane: 1.0
+  cytosol: 2.0
+  endomembrane-system: 3.0
+  mitochondria: 4.0
+  nucleus: 5.0
+  nucleoli: 6.0
+  plastid: 7.0
